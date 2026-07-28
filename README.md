@@ -41,20 +41,35 @@ python3 -m http.server 8080
 
 If the domain currently points at Canva via Cloudflare (or similar), switch the apex/www records to DigitalOcean once the app is live. Keep HTTPS on DO or Cloudflare.
 
-## Contact form (FormSubmit)
+## Contact form (FormSubmit → Gmail)
 
-The form posts to:
+The quote form uses **AJAX** to:
 
 ```
-https://formsubmit.co/rebekahcleaning@gmail.com
+https://formsubmit.co/ajax/rebekahcleaning@gmail.com
 ```
 
-**First use:** FormSubmit emails Rebekah once to confirm the address — she must click the confirmation link. After that, quote requests land in Gmail.
+Submissions are emailed to **rebekahcleaning@gmail.com** (subject: `Website quote request — Rebekahcleanslanecounty.com`). Reply-To is set to the visitor’s email.
 
-Alternatives if you want something else later:
+### One-time activation (required)
 
-- n8n webhook → email
-- `mailto:` only (already linked on the page)
+FormSubmit will **not** forward real leads until the inbox owner activates:
+
+1. Open **rebekahcleaning@gmail.com** (check Spam/Promotions too).
+2. Find the email from **FormSubmit** titled something like “Activate Form”.
+3. Click **Activate Form**.
+4. Submit a test quote on the live site — it should appear in Gmail within a minute.
+
+Until activation, the site shows a clear on-page message instead of a silent failure.
+
+### Test from the browser
+
+```bash
+python3 -m http.server 8080
+# open http://localhost:8080/#contact → fill form → Send
+```
+
+Alternatives later: n8n webhook → email, or Formspree.
 
 ## Edit content
 

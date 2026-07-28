@@ -460,19 +460,15 @@
 
           <div class="contact-card">
             <h3>Send a message</h3>
-            <!-- FormSubmit: free email form backend — no server required.
-                 Activate once by confirming the first email FormSubmit sends. -->
-            <form
-              class="form"
-              id="contactForm"
-              action="https://formsubmit.co/rebekahcleaning@gmail.com"
-              method="POST"
-            >
+            <!-- Delivers to rebekahcleaning@gmail.com via FormSubmit AJAX.
+                 One-time: open that inbox → click “Activate Form” in FormSubmit’s email. -->
+            <form class="form" id="contactForm" action="https://formsubmit.co/ajax/rebekahcleaning@gmail.com" method="POST" novalidate>
               <input type="hidden" name="_subject" value="Website quote request — Rebekahcleanslanecounty.com">
               <input type="hidden" name="_template" value="table">
               <input type="hidden" name="_captcha" value="false">
-              <input type="hidden" name="_next" value="https://rebekahcleanslanecounty.com/?sent=1#contact">
-              <input type="text" name="_honey" class="hp-field" tabindex="-1" autocomplete="off" aria-hidden="true">
+              <input type="hidden" name="_blacklist" value="spam,viagra,casino">
+              <!-- FormSubmit honeypot (must be named _gotcha) -->
+              <input type="text" name="_gotcha" class="hp-field" tabindex="-1" autocomplete="off" aria-hidden="true">
 
               <div class="form-row two">
                 <div class="form-row">
@@ -505,10 +501,10 @@
 
               <div class="form-row">
                 <label for="message">Details</label>
-                <textarea id="message" name="message" placeholder="Location, size, how often, anything we should know…"></textarea>
+                <textarea id="message" name="message" required placeholder="Location, size, how often, anything we should know…"></textarea>
               </div>
 
-              <button class="btn btn-primary" type="submit">Send quote request</button>
+              <button class="btn btn-primary" type="submit" id="formSubmitBtn">Send quote request</button>
               <p class="form-status" id="formStatus" role="status" aria-live="polite"></p>
               <p style="font-size:0.88rem;color:var(--muted);">
                 Or email us directly at
@@ -577,11 +573,111 @@
         });
       }
 
-      // Thank-you state after FormSubmit redirect
-      var status = document.getElementById('formStatus');
-      if (status && /[?&]sent=1\b/.test(location.search)) {
-        status.textContent = 'Thank you — your message was sent. We’ll be in touch soon.';
-        status.className = 'form-status ok';
+      // Contact form → FormSubmit → rebekahcleaning@gmail.com
+      var form = document.getElementById('contactForm');
+      var statusEl = document.getElementById('formStatus');
+      var submitBtn = document.getElementById('formSubmitBtn');
+      var endpoint = 'https://formsubmit.co/ajax/rebekahcleaning@gmail.com';
+
+      function setStatus(msg, kind) {
+        if (!statusEl) return;
+        statusEl.textContent = msg;
+        statusEl.className = 'form-status' + (kind ? ' ' + kind : '');
+      }
+
+      if (form) {
+        form.addEventListener('submit', function (e) {
+          e.preventDefault();
+
+          var name = (form.elements.namedItem('name') || {}).value || '';
+          var email = (form.elements.namedItem('email') || {}).value || '';
+          var phone = (form.elements.namedItem('phone') || {}).value || '';
+          var service = (form.elements.namedItem('service') || {}).value || '';
+          var message = (form.elements.namedItem('message') || {}).value || '';
+          var gotcha = (form.elements.namedItem('_gotcha') || {}).value || '';
+
+          // Bot filled honeypot — fake success, do not send
+          if (gotcha) {
+            setStatus('Thank you — your message was sent. We’ll be in touch soon.', 'ok');
+            form.reset();
+            return;
+          }
+
+          if (!name.trim() || !email.trim() || !message.trim()) {
+            setStatus('Please fill in your name, email, and a short message.', 'err');
+            return;
+          }
+
+          if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Sending…';
+          }
+          setStatus('Sending your request…', '');
+
+          var payload = {
+            name: name.trim(),
+            email: email.trim(),
+            phone: phone.trim(),
+            service: service,
+            message: message.trim(),
+            _subject: 'Website quote request — Rebekahcleanslanecounty.com',
+            _template: 'table',
+            _captcha: 'false',
+            _replyto: email.trim()
+          };
+
+          fetch(endpoint, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Accept: 'application/json'
+            },
+            body: JSON.stringify(payload)
+          })
+            .then(function (res) {
+              return res.json().then(function (data) {
+                return { ok: res.ok, data: data };
+              });
+            })
+            .then(function (result) {
+              var data = result.data || {};
+              var msg = String(data.message || '');
+              var success = data.success === true || data.success === 'true';
+
+              if (success) {
+                setStatus('Thank you — your message was sent to Rebekah. We’ll be in touch soon.', 'ok');
+                form.reset();
+                return;
+              }
+
+              // First-time setup: FormSubmit emails rebekahcleaning@gmail.com an Activate link
+              if (/activat/i.test(msg)) {
+                setStatus(
+                  'Almost there: check rebekahcleaning@gmail.com for an email from FormSubmit and click “Activate Form”. After that, quote requests will land in Gmail automatically.',
+                  'err'
+                );
+                return;
+              }
+
+              setStatus(
+                msg ||
+                  'Could not send right now. Please call 541-726-1180 or email rebekahcleaning@gmail.com.',
+                'err'
+              );
+            })
+            .catch(function () {
+              setStatus(
+                'Network error — please call 541-726-1180 or email rebekahcleaning@gmail.com directly.',
+                'err'
+              );
+            })
+            .finally(function () {
+              if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Send quote request';
+              }
+            });
+        });
       }
     })();
   </script>
