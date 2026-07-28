@@ -73,14 +73,18 @@ Alternatives later: n8n webhook → email, or Formspree.
 
 ## Google / local search (Lane County)
 
-The site is SEO-ready (sitemap, robots, `HouseCleaner` schema). To **show in Maps / local pack** you still need free Google accounts set up:
+**Existing listings (do not recreate):**
 
-→ Full steps: **[docs/GOOGLE-LOCAL.md](docs/GOOGLE-LOCAL.md)**
+| | |
+|--|--|
+| Google Maps / Business | https://maps.app.goo.gl/KtoGTbdjrLLAUEL88 |
+| Yelp (Springfield) | https://www.yelp.com/biz/rebekah-s-cleaning-service-springfield |
 
-1. **Google Business Profile** — https://business.google.com/ (service area: Lane County; phone `541-726-1180`; website this domain)
-2. **Search Console** — https://search.google.com/search-console → verify → submit `sitemap.xml` → request indexing
+Name: **Rebekah's Cleaning Service** · Phone: **(541) 726-1180** · Website already on Google.
 
-Paste a Search Console meta tag or HTML verification file here and it can be committed for you.
+→ Manage + Search Console steps: **[docs/GOOGLE-LOCAL.md](docs/GOOGLE-LOCAL.md)**
+
+Paste a Search Console verification meta/file here if you want it added to the site.
 
 ## Edit content
 
