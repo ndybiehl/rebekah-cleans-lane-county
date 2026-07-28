@@ -260,6 +260,46 @@ function adminShell() {
   .chart-wrap svg { display:block; width:100%; height:auto; max-height:220px; }
   .setup-box { background:#fff8f0; border:1px dashed #d4a574; border-radius:12px; padding:1rem; font-size:.92rem; }
   .setup-box ol { margin:.5rem 0 0; padding-left:1.2rem; }
+  /* Ops-style traffic chart */
+  .seo-chart {
+    margin:.25rem 0 .85rem; border:1px solid var(--line); border-radius:12px;
+    background:#fff; padding:.55rem .45rem .35rem;
+  }
+  .seo-chart-legend {
+    display:flex; flex-wrap:wrap; gap:.35rem; padding:0 .35rem .5rem;
+  }
+  .seo-chart-legend-btn {
+    display:inline-flex; align-items:center; gap:.35rem;
+    border:1px solid var(--line); background:var(--cream); color:#666;
+    font:inherit; font-size:.75rem; font-weight:700; padding:.28rem .55rem;
+    border-radius:999px; cursor:pointer; opacity:.55;
+  }
+  .seo-chart-legend-btn.is-on {
+    opacity:1; color:#1a1a1a; border-color:rgba(107,29,42,.28); background:#fff;
+  }
+  .seo-chart-swatch {
+    width:.55rem; height:.55rem; border-radius:999px; flex-shrink:0;
+  }
+  .seo-chart-svg-wrap { width:100%; overflow:hidden; }
+  .seo-chart-svg {
+    display:block; width:100%; height:auto; min-height:180px;
+  }
+  .seo-chart-grid { stroke:rgba(30,58,95,.12); stroke-width:1; stroke-dasharray:3 3; }
+  .seo-chart-axis {
+    fill:#888; font-size:10px; font-weight:600; font-family:system-ui,sans-serif;
+  }
+  .seo-chart-h3 {
+    margin:1rem 0 .45rem; font-size:.88rem; font-weight:800; color:var(--navy);
+    font-family:system-ui,sans-serif;
+  }
+  .table-wrap {
+    overflow:auto; border:1px solid var(--line); border-radius:10px; margin-top:.35rem;
+  }
+  .table-wrap table { margin:0; }
+  .table-wrap thead th {
+    font-size:.7rem; text-transform:uppercase; letter-spacing:.04em;
+    color:#666; background:var(--cream); font-weight:800;
+  }
 </style>
 </head>
 <body>
@@ -432,7 +472,15 @@ function adminShell() {
       }
       const t = tr.totals || {};
       const days = tr.days || [];
-      const chart = sparkline(days);
+      // Keep for legend toggles
+      window.__trafficDays = days.slice().sort((a, b) => a.date.localeCompare(b.date));
+      window.__chartActive = window.__chartActive || {
+        users: true,
+        sessions: true,
+        pageViews: true,
+        leads: true,
+      };
+      const chart = trafficChartHtml(window.__trafficDays, window.__chartActive);
       const topPages = (tr.topPages || []).slice(0, 8).map(p =>
         '<tr><td><code>' + esc(p.path) + '</code></td><td>' + p.pageViews + '</td><td>' + p.sessions + '</td></tr>'
       ).join('') || '<tr><td colspan="3" class="muted">No page data yet (new property — give it 24–48h)</td></tr>';
@@ -440,6 +488,10 @@ function adminShell() {
         '<tr><td><code>' + esc(e.name) + '</code></td><td>' + e.count + '</td></tr>'
       ).join('') || '<tr><td colspan="2" class="muted">No events yet</td></tr>';
       const range = tr.range ? (tr.range.startDate + ' → ' + tr.range.endDate) : 'last 28 days';
+      const dayRows = [...days].sort((a, b) => b.date.localeCompare(a.date)).map(d =>
+        '<tr><td>' + esc(d.date) + '</td><td>' + fmt(d.users) + '</td><td>' +
+        fmt(d.sessions) + '</td><td>' + fmt(d.pageViews) + '</td><td>' + fmt(d.leads) + '</td></tr>'
+      ).join('') || '<tr><td colspan="5" class="muted">No daily rows yet</td></tr>';
 
       return \`
         <div class="card" style="margin-bottom:1rem">
@@ -451,8 +503,14 @@ function adminShell() {
             <div class="stat"><strong>\${fmt(t.pageViews)}</strong><span>Page views</span></div>
             <div class="stat"><strong>\${fmt(t.leads)}</strong><span>Leads</span></div>
           </div>
-          <div class="chart-wrap">\${chart}</div>
-          <p class="muted" style="margin:.5rem 0 0">Blue = sessions · Burgundy = page views · Green bars = generate_lead</p>
+          <h3 class="seo-chart-h3">Daily traffic</h3>
+          <div id="traffic-chart-root">\${chart}</div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Date</th><th>Users</th><th>Sessions</th><th>Page views</th><th>Leads</th></tr></thead>
+              <tbody>\${dayRows}</tbody>
+            </table>
+          </div>
         </div>
         <div class="cards" style="margin-bottom:1rem">
           <div class="card">
@@ -476,32 +534,151 @@ function adminShell() {
       return Number(n || 0).toLocaleString();
     }
 
-    function sparkline(days) {
-      if (!days.length) return '<p class="muted">No daily series yet.</p>';
-      const w = 640, h = 160, pad = 16;
-      const maxS = Math.max(1, ...days.map(d => d.sessions));
-      const maxP = Math.max(1, ...days.map(d => d.pageViews));
-      const maxL = Math.max(1, ...days.map(d => d.leads));
-      const maxY = Math.max(maxS, maxP);
-      const n = days.length;
-      const x = (i) => pad + (i * (w - pad * 2)) / Math.max(1, n - 1);
-      const y = (v) => h - pad - (v / maxY) * (h - pad * 2);
-      const line = (key, color) => {
-        const pts = days.map((d, i) => x(i) + ',' + y(d[key])).join(' ');
-        return '<polyline fill="none" stroke="' + color + '" stroke-width="2" points="' + pts + '" />';
-      };
-      const bars = days.map((d, i) => {
-        if (!d.leads) return '';
-        const bh = Math.max(2, (d.leads / maxL) * 24);
-        return '<rect x="' + (x(i) - 2) + '" y="' + (h - pad - bh) + '" width="4" height="' + bh + '" fill="#1b6b3a" opacity="0.75" />';
-      }).join('');
-      return '<svg viewBox="0 0 ' + w + ' ' + h + '" role="img" aria-label="Sessions and page views chart">' +
-        '<rect x="0" y="0" width="' + w + '" height="' + h + '" fill="#faf7f5" rx="8"/>' +
-        bars +
-        line('pageViews', '#6b1d2a') +
-        line('sessions', '#1e3a5f') +
-        '</svg>';
+    const CHART_SERIES = {
+      users:     { label: 'Users',      color: '#5b9cff', fill: 'rgba(91,156,255,0.16)' },
+      sessions:  { label: 'Sessions',   color: '#1e3a5f', fill: 'rgba(30,58,95,0.12)' },
+      pageViews: { label: 'Page views', color: '#6b1d2a', fill: 'rgba(107,29,42,0.14)' },
+      leads:     { label: 'Leads',      color: '#1b6b3a', fill: 'rgba(27,107,58,0.14)' },
+    };
+
+    function formatShortDate(iso) {
+      const m = String(iso || '').match(/^(\\d{4})-(\\d{2})-(\\d{2})/);
+      if (!m) return String(iso || '').slice(5);
+      return Number(m[2]) + '/' + Number(m[3]);
     }
+
+    function formatAxis(n) {
+      if (n >= 1e6) return (n / 1e6).toFixed(1) + 'M';
+      if (n >= 10000) return Math.round(n / 1000) + 'k';
+      if (n >= 1000) return (n / 1000).toFixed(1) + 'k';
+      return String(Math.round(n));
+    }
+
+    function niceMax(raw) {
+      if (raw <= 0) return 10;
+      const exp = Math.floor(Math.log10(raw));
+      const base = Math.pow(10, exp);
+      const n = raw / base;
+      const nice = n <= 1 ? 1 : n <= 2 ? 2 : n <= 5 ? 5 : 10;
+      return nice * base;
+    }
+
+    function linePath(points, closeToBaseline) {
+      if (!points.length) return '';
+      let d = 'M ' + points[0].x.toFixed(1) + ' ' + points[0].y.toFixed(1);
+      for (let i = 1; i < points.length; i++) {
+        d += ' L ' + points[i].x.toFixed(1) + ' ' + points[i].y.toFixed(1);
+      }
+      if (closeToBaseline != null && points.length) {
+        d += ' L ' + points[points.length - 1].x.toFixed(1) + ' ' + closeToBaseline;
+        d += ' L ' + points[0].x.toFixed(1) + ' ' + closeToBaseline + ' Z';
+      }
+      return d;
+    }
+
+    function trafficChartHtml(days, active) {
+      if (!days || !days.length) {
+        return '<p class="muted">No daily series yet — new property may take 24–48h to fill charts.</p>';
+      }
+
+      const keys = Object.keys(CHART_SERIES).filter(k => active[k]);
+      const W = 640, H = 220;
+      const pad = { top: 16, right: 12, bottom: 28, left: 44 };
+      const innerW = W - pad.left - pad.right;
+      const innerH = H - pad.top - pad.bottom;
+
+      let max = 0;
+      for (const d of days) {
+        for (const k of keys) max = Math.max(max, Number(d[k]) || 0);
+      }
+      const yMax = niceMax(max);
+      const yTicks = [0, 0.25, 0.5, 0.75, 1].map(t => t * yMax);
+      const n = Math.max(days.length, 1);
+      const xAt = (i) => pad.left + (n === 1 ? innerW / 2 : (i / (n - 1)) * innerW);
+      const yAt = (v) => pad.top + innerH - (yMax === 0 ? 0 : (v / yMax) * innerH);
+      const baseline = pad.top + innerH;
+
+      const seriesPoints = keys.map(key => ({
+        key,
+        points: days.map((d, i) => ({
+          x: xAt(i),
+          y: yAt(Number(d[key]) || 0),
+          value: Number(d[key]) || 0,
+        })),
+        ...CHART_SERIES[key],
+      }));
+
+      // X labels: show ~7 evenly spaced to avoid clutter on 28-day range
+      const labelStep = Math.max(1, Math.ceil(days.length / 7));
+      const labels = days.map((d, i) => ({
+        x: xAt(i),
+        text: formatShortDate(d.date),
+        show: i === 0 || i === days.length - 1 || i % labelStep === 0,
+      }));
+
+      let svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" class="seo-chart-svg" role="img" aria-label="Daily traffic chart">';
+
+      for (const t of yTicks) {
+        const y = yAt(t);
+        svg += '<line x1="' + pad.left + '" x2="' + (pad.left + innerW) + '" y1="' + y + '" y2="' + y + '" class="seo-chart-grid" />';
+        svg += '<text x="' + (pad.left - 8) + '" y="' + y + '" class="seo-chart-axis" text-anchor="end" dominant-baseline="middle">' +
+          formatAxis(t) + '</text>';
+      }
+
+      for (const s of seriesPoints) {
+        svg += '<path d="' + linePath(s.points, baseline) + '" fill="' + s.fill + '" stroke="none" />';
+      }
+      for (const s of seriesPoints) {
+        svg += '<path d="' + linePath(s.points) + '" fill="none" stroke="' + s.color +
+          '" stroke-width="2.25" stroke-linejoin="round" stroke-linecap="round" />';
+      }
+      for (const s of seriesPoints) {
+        s.points.forEach((p, i) => {
+          const r = i === s.points.length - 1 ? 3.5 : 2.5;
+          svg += '<circle cx="' + p.x.toFixed(1) + '" cy="' + p.y.toFixed(1) + '" r="' + r +
+            '" fill="' + s.color + '"><title>' + esc(CHART_SERIES[s.key].label) + ': ' +
+            p.value + '</title></circle>';
+        });
+      }
+      for (const l of labels) {
+        if (!l.show) continue;
+        svg += '<text x="' + l.x.toFixed(1) + '" y="' + (H - 8) + '" class="seo-chart-axis" text-anchor="middle">' +
+          esc(l.text) + '</text>';
+      }
+      svg += '</svg>';
+
+      const legend = Object.keys(CHART_SERIES).map(key => {
+        const on = active[key] ? ' is-on' : '';
+        return '<button type="button" class="seo-chart-legend-btn' + on +
+          '" data-series="' + key + '" aria-pressed="' + (active[key] ? 'true' : 'false') + '">' +
+          '<span class="seo-chart-swatch" style="background:' + CHART_SERIES[key].color + '"></span>' +
+          esc(CHART_SERIES[key].label) + '</button>';
+      }).join('');
+
+      return '<div class="seo-chart">' +
+        '<div class="seo-chart-legend" role="group" aria-label="Series">' + legend + '</div>' +
+        '<div class="seo-chart-svg-wrap">' + svg + '</div>' +
+        '</div>';
+    }
+
+    function toggleChartSeries(key) {
+      const active = window.__chartActive || {};
+      const next = Object.assign({}, active, { [key]: !active[key] });
+      // Keep at least one series on
+      if (!Object.keys(CHART_SERIES).some(k => next[k])) return;
+      window.__chartActive = next;
+      const root = document.getElementById('traffic-chart-root');
+      if (root) {
+        root.innerHTML = trafficChartHtml(window.__trafficDays || [], next);
+      }
+    }
+
+    document.getElementById('root').addEventListener('click', (e) => {
+      const btn = e.target.closest && e.target.closest('[data-series]');
+      if (!btn) return;
+      e.preventDefault();
+      toggleChartSeries(btn.getAttribute('data-series'));
+    });
 
     document.getElementById('refresh').onclick = () => {
       document.getElementById('root').innerHTML = '<p class="muted">Refreshing…</p>';
