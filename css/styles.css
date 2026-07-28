@@ -534,16 +534,27 @@ section {
 }
 
 .service-icon {
-  width: 42px;
-  height: 42px;
-  border-radius: 10px;
-  background: var(--white);
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: linear-gradient(145deg, #fff 0%, var(--cream) 100%);
   border: 1px solid var(--line);
   display: grid;
   place-items: center;
-  margin-bottom: 0.85rem;
+  margin-bottom: 1rem;
+  color: var(--burgundy);
+  box-shadow: 0 1px 2px rgba(74, 18, 32, 0.04);
+}
+
+.service-icon svg {
+  display: block;
+  flex-shrink: 0;
+}
+
+.service-card:hover .service-icon {
   color: var(--hibiscus);
-  font-size: 1.25rem;
+  border-color: rgba(196, 30, 58, 0.22);
+  box-shadow: 0 4px 12px rgba(196, 30, 58, 0.1);
 }
 
 .service-card h3 {
