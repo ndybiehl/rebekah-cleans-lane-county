@@ -32,5 +32,7 @@ services:
         value: "402544998"
       - key: GA4_STREAM_ID
         value: "15341565315"
+      # SECRET in DO dashboard (full service account JSON, one line):
+      # GA4_SERVICE_ACCOUNT_JSON
     health_check:
       http_path: /healthz

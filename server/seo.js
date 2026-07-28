@@ -16,6 +16,8 @@ const GA4_STREAM_ID = process.env.GA4_STREAM_ID?.trim() || "15341565315";
 
 const KEY_PATHS = ["/", "/robots.txt", "/sitemap.xml", "/css/styles.css"];
 
+const { fetchGa4Traffic, ga4Configured } = require("./ga4");
+
 async function fetchText(url, opts = {}) {
   const ctrl = new AbortController();
   const t = setTimeout(() => ctrl.abort(), opts.timeoutMs || 12000);
@@ -174,12 +176,16 @@ async function buildSeoSnapshot() {
   const ga4Reports = `https://analytics.google.com/analytics/web/#/p${GA4_PROPERTY_ID}/reports/reportinghub`;
   const ga4Admin = `https://analytics.google.com/analytics/web/#/a${GA4_ACCOUNT_ID}p${GA4_PROPERTY_ID}/admin`;
 
+  // Live traffic from GA4 Data API (service account)
+  let traffic = await fetchGa4Traffic(28);
+
   return {
     ok: true,
     site: SITE,
     generatedAt,
     score,
     homepage,
+    traffic,
     ga4: {
       measurementId: GA4_MEASUREMENT_ID,
       propertyId: GA4_PROPERTY_ID,
@@ -188,6 +194,9 @@ async function buildSeoSnapshot() {
       onPage: Boolean(homepage?.hasGa4),
       onPageId: homepage?.ga4MeasurementId || null,
       matchesConfig: ga4OnPage,
+      dataApiConfigured: ga4Configured(),
+      dataApiOk: Boolean(traffic?.ok),
+      dataApiError: traffic?.error || null,
     },
     checks: checks.map((c) => ({
       name: c.name,

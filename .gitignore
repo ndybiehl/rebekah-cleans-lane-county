@@ -6,3 +6,6 @@ node_modules/
 .env
 .env.local
 .npm
+secrets/
+*.pem
+*-service-account.json

@@ -251,6 +251,15 @@ function adminShell() {
   .err { color:var(--bad); }
   .muted { color:#666; font-size:.88rem; }
   code { font-size:.85em; background:var(--cream); padding:.1rem .35rem; border-radius:4px; }
+  .stat-row { display:grid; grid-template-columns:repeat(4,1fr); gap:.75rem; margin-bottom:1rem; }
+  @media (max-width:720px) { .stat-row { grid-template-columns:1fr 1fr; } }
+  .stat { background:var(--cream); border-radius:12px; padding:.85rem; text-align:center; border:1px solid var(--line); }
+  .stat strong { display:block; font-size:1.4rem; color:var(--burgundy); font-family:Georgia,serif; }
+  .stat span { font-size:.78rem; color:#666; font-weight:600; text-transform:uppercase; letter-spacing:.04em; }
+  .chart-wrap { width:100%; overflow-x:auto; }
+  .chart-wrap svg { display:block; width:100%; height:auto; max-height:220px; }
+  .setup-box { background:#fff8f0; border:1px dashed #d4a574; border-radius:12px; padding:1rem; font-size:.92rem; }
+  .setup-box ol { margin:.5rem 0 0; padding-left:1.2rem; }
 </style>
 </head>
 <body>
@@ -296,6 +305,9 @@ function adminShell() {
         const hp = seo.homepage || {};
         const links = seo.links || {};
         const tips = (seo.tips || []).map(t => '<li>' + esc(t) + '</li>').join('');
+        const tr = seo.traffic || {};
+        const totals = tr.totals || { sessions: 0, users: 0, pageViews: 0, leads: 0 };
+        const trafficHtml = renderTraffic(tr, links);
 
         root.innerHTML = \`
           <div class="score">
@@ -308,6 +320,8 @@ function adminShell() {
               </p>
             </div>
           </div>
+
+          \${trafficHtml}
 
           <div class="cards">
             <div class="card" style="grid-column:1/-1">
@@ -340,8 +354,11 @@ function adminShell() {
                 <span class="badge \${seo.ga4 && seo.ga4.onPage ? 'ok' : 'bad'}">
                   \${seo.ga4 && seo.ga4.onPage ? 'Tag on site' : 'Tag not detected'}
                 </span>
+                <span class="badge \${seo.ga4 && seo.ga4.dataApiOk ? 'ok' : (seo.ga4 && seo.ga4.dataApiConfigured ? 'bad' : 'bad')}" style="margin-left:.35rem">
+                  \${seo.ga4 && seo.ga4.dataApiOk ? 'Data API live' : (seo.ga4 && seo.ga4.dataApiConfigured ? 'Data API error' : 'Data API not configured')}
+                </span>
               </p>
-              <p class="muted">Sign in as rebekahcleaning@gmail.com to open reports. Realtime may take a few minutes after deploy.</p>
+              \${seo.ga4 && seo.ga4.dataApiError ? '<p class="err" style="font-size:.88rem">' + esc(seo.ga4.dataApiError) + '</p>' : ''}
               <div class="links">
                 <a href="\${esc(links.ga4Realtime || '#')}" target="_blank" rel="noopener">Realtime</a>
                 <a href="\${esc(links.ga4 || '#')}" target="_blank" rel="noopener">GA4 home</a>
@@ -383,6 +400,109 @@ function adminShell() {
       return String(s ?? '').replace(/[&<>"']/g, c =>
         ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
     }
+
+    function renderTraffic(tr, links) {
+      if (!tr) return '';
+      if (!tr.configured) {
+        return \`
+          <div class="card" style="margin-bottom:1rem">
+            <h2>Traffic (GA4 Data API)</h2>
+            <div class="setup-box">
+              <strong>Not configured yet</strong> — charts need a Google Cloud service account with Viewer access on the GA4 property.
+              <ol>
+                <li>Create a GCP project and enable <em>Google Analytics Data API</em></li>
+                <li>Create a service account + JSON key</li>
+                <li>In GA4 Admin → Property access → add the SA email as <strong>Viewer</strong></li>
+                <li>Set DO env <code>GA4_SERVICE_ACCOUNT_JSON</code> to the full JSON key (secret)</li>
+              </ol>
+              <p class="muted" style="margin:.75rem 0 0">See <code>docs/GA4-DATA-API.md</code> in the repo for copy-paste steps.</p>
+              <div class="links" style="margin-top:.75rem">
+                <a href="\${esc(links.ga4Realtime || '#')}" target="_blank" rel="noopener">Open Realtime meanwhile</a>
+              </div>
+            </div>
+          </div>\`;
+      }
+      if (!tr.ok) {
+        return \`
+          <div class="card" style="margin-bottom:1rem">
+            <h2>Traffic (GA4 Data API)</h2>
+            <p class="err">\${esc(tr.error || 'Failed to load GA4 metrics')}</p>
+            <p class="muted">SA: <code>\${esc(tr.serviceAccountEmail || '—')}</code> · property <code>\${esc(tr.propertyId || '—')}</code></p>
+          </div>\`;
+      }
+      const t = tr.totals || {};
+      const days = tr.days || [];
+      const chart = sparkline(days);
+      const topPages = (tr.topPages || []).slice(0, 8).map(p =>
+        '<tr><td><code>' + esc(p.path) + '</code></td><td>' + p.pageViews + '</td><td>' + p.sessions + '</td></tr>'
+      ).join('') || '<tr><td colspan="3" class="muted">No page data yet (new property — give it 24–48h)</td></tr>';
+      const events = (tr.events || []).slice(0, 8).map(e =>
+        '<tr><td><code>' + esc(e.name) + '</code></td><td>' + e.count + '</td></tr>'
+      ).join('') || '<tr><td colspan="2" class="muted">No events yet</td></tr>';
+      const range = tr.range ? (tr.range.startDate + ' → ' + tr.range.endDate) : 'last 28 days';
+
+      return \`
+        <div class="card" style="margin-bottom:1rem">
+          <h2>Traffic (GA4 · \${esc(range)})</h2>
+          <p class="muted" style="margin-top:0">via Data API · \${esc(tr.serviceAccountEmail || '')}</p>
+          <div class="stat-row">
+            <div class="stat"><strong>\${fmt(t.users)}</strong><span>Users</span></div>
+            <div class="stat"><strong>\${fmt(t.sessions)}</strong><span>Sessions</span></div>
+            <div class="stat"><strong>\${fmt(t.pageViews)}</strong><span>Page views</span></div>
+            <div class="stat"><strong>\${fmt(t.leads)}</strong><span>Leads</span></div>
+          </div>
+          <div class="chart-wrap">\${chart}</div>
+          <p class="muted" style="margin:.5rem 0 0">Blue = sessions · Burgundy = page views · Green bars = generate_lead</p>
+        </div>
+        <div class="cards" style="margin-bottom:1rem">
+          <div class="card">
+            <h2>Top pages</h2>
+            <table>
+              <thead><tr><th>Path</th><th>Views</th><th>Sessions</th></tr></thead>
+              <tbody>\${topPages}</tbody>
+            </table>
+          </div>
+          <div class="card">
+            <h2>Events</h2>
+            <table>
+              <thead><tr><th>Event</th><th>Count</th></tr></thead>
+              <tbody>\${events}</tbody>
+            </table>
+          </div>
+        </div>\`;
+    }
+
+    function fmt(n) {
+      return Number(n || 0).toLocaleString();
+    }
+
+    function sparkline(days) {
+      if (!days.length) return '<p class="muted">No daily series yet.</p>';
+      const w = 640, h = 160, pad = 16;
+      const maxS = Math.max(1, ...days.map(d => d.sessions));
+      const maxP = Math.max(1, ...days.map(d => d.pageViews));
+      const maxL = Math.max(1, ...days.map(d => d.leads));
+      const maxY = Math.max(maxS, maxP);
+      const n = days.length;
+      const x = (i) => pad + (i * (w - pad * 2)) / Math.max(1, n - 1);
+      const y = (v) => h - pad - (v / maxY) * (h - pad * 2);
+      const line = (key, color) => {
+        const pts = days.map((d, i) => x(i) + ',' + y(d[key])).join(' ');
+        return '<polyline fill="none" stroke="' + color + '" stroke-width="2" points="' + pts + '" />';
+      };
+      const bars = days.map((d, i) => {
+        if (!d.leads) return '';
+        const bh = Math.max(2, (d.leads / maxL) * 24);
+        return '<rect x="' + (x(i) - 2) + '" y="' + (h - pad - bh) + '" width="4" height="' + bh + '" fill="#1b6b3a" opacity="0.75" />';
+      }).join('');
+      return '<svg viewBox="0 0 ' + w + ' ' + h + '" role="img" aria-label="Sessions and page views chart">' +
+        '<rect x="0" y="0" width="' + w + '" height="' + h + '" fill="#faf7f5" rx="8"/>' +
+        bars +
+        line('pageViews', '#6b1d2a') +
+        line('sessions', '#1e3a5f') +
+        '</svg>';
+    }
+
     document.getElementById('refresh').onclick = () => {
       document.getElementById('root').innerHTML = '<p class="muted">Refreshing…</p>';
       load();

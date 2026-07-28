@@ -57,6 +57,12 @@ Sign-in: **rebekahcleaning@gmail.com** + password from env.
 
 Realtime verify after deploy: open [GA4 Realtime](https://analytics.google.com/analytics/web/#/p547446420/realtime/overview) while browsing the live site.
 
+### Traffic charts (Data API)
+
+`/admin` can show **28‑day users/sessions/pageviews/leads** + top pages when a service account is configured.
+
+See **[docs/GA4-DATA-API.md](docs/GA4-DATA-API.md)** (enable Analytics Data API → SA JSON → GA4 Viewer → `GA4_SERVICE_ACCOUNT_JSON` on DO).
+
 ## Deploy (DigitalOcean)
 
 1. App type: **Web Service** (Node), not static-only.
