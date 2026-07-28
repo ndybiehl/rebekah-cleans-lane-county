@@ -43,48 +43,60 @@
     "@context": "https://schema.org",
     "@graph": [
       {
-        "@type": "LocalBusiness",
+        "@type": ["LocalBusiness", "HouseCleaner"],
         "@id": "https://rebekahcleanslanecounty.com/#business",
         "name": "Rebekah's Cleaning Service",
         "alternateName": ["Rebekah's Cleaning Services", "Rebekah Cleans Lane County"],
         "url": "https://rebekahcleanslanecounty.com/",
         "telephone": "+1-541-726-1180",
         "email": "rebekahcleaning@gmail.com",
-        "image": "https://rebekahcleanslanecounty.com/images/logo.png",
+        "image": [
+          "https://rebekahcleanslanecounty.com/images/logo.png",
+          "https://rebekahcleanslanecounty.com/images/og-image.jpg",
+          "https://rebekahcleanslanecounty.com/images/kitchen-clean.jpg",
+          "https://rebekahcleanslanecounty.com/images/window-cleaning.jpg"
+        ],
         "logo": "https://rebekahcleanslanecounty.com/images/logo.png",
         "description": "Family-trusted commercial and residential cleaning serving Lane County, Oregon for over 25 years. Medical and dental office cleaning, business offices, churches, industrial facilities, and professional window cleaning.",
         "priceRange": "$$",
+        "currenciesAccepted": "USD",
+        "paymentAccepted": "Cash, Check, Credit Card",
         "areaServed": [
           {
             "@type": "AdministrativeArea",
-            "name": "Lane County, Oregon"
+            "name": "Lane County, Oregon",
+            "sameAs": "https://en.wikipedia.org/wiki/Lane_County,_Oregon"
           },
-          {
-            "@type": "City",
-            "name": "Eugene"
-          },
-          {
-            "@type": "City",
-            "name": "Springfield"
-          },
-          {
-            "@type": "City",
-            "name": "Cottage Grove"
-          },
-          {
-            "@type": "City",
-            "name": "Junction City"
-          }
+          { "@type": "City", "name": "Eugene, OR" },
+          { "@type": "City", "name": "Springfield, OR" },
+          { "@type": "City", "name": "Cottage Grove, OR" },
+          { "@type": "City", "name": "Junction City, OR" },
+          { "@type": "City", "name": "Florence, OR" },
+          { "@type": "City", "name": "Creswell, OR" }
         ],
         "address": {
           "@type": "PostalAddress",
+          "addressLocality": "Eugene",
           "addressRegion": "OR",
           "addressCountry": "US",
-          "addressLocality": "Lane County"
+          "postalCode": "97401"
+        },
+        "geo": {
+          "@type": "GeoCoordinates",
+          "latitude": 44.0521,
+          "longitude": -123.0868
         },
         "foundingDate": "2000",
         "slogan": "Built on Trust, Kept Spotless",
         "knowsAbout": [
+          "Medical office cleaning",
+          "Dental office cleaning",
+          "Commercial cleaning",
+          "Residential cleaning",
+          "Window cleaning",
+          "Lane County house cleaning"
+        ],
+        "serviceType": [
           "Medical office cleaning",
           "Dental office cleaning",
           "Commercial cleaning",
@@ -97,7 +109,9 @@
             "itemOffered": {
               "@type": "Service",
               "name": "Medical & Dental Office Cleaning",
-              "areaServed": "Lane County, OR"
+              "serviceType": "Healthcare facility cleaning",
+              "areaServed": "Lane County, OR",
+              "provider": { "@id": "https://rebekahcleanslanecounty.com/#business" }
             }
           },
           {
@@ -105,7 +119,9 @@
             "itemOffered": {
               "@type": "Service",
               "name": "Commercial Office Cleaning",
-              "areaServed": "Lane County, OR"
+              "serviceType": "Commercial cleaning",
+              "areaServed": "Lane County, OR",
+              "provider": { "@id": "https://rebekahcleanslanecounty.com/#business" }
             }
           },
           {
@@ -113,7 +129,9 @@
             "itemOffered": {
               "@type": "Service",
               "name": "Residential Cleaning",
-              "areaServed": "Lane County, OR"
+              "serviceType": "House cleaning",
+              "areaServed": "Lane County, OR",
+              "provider": { "@id": "https://rebekahcleanslanecounty.com/#business" }
             }
           },
           {
@@ -121,7 +139,9 @@
             "itemOffered": {
               "@type": "Service",
               "name": "Professional Window Cleaning",
-              "areaServed": "Lane County, OR"
+              "serviceType": "Window cleaning",
+              "areaServed": "Lane County, OR",
+              "provider": { "@id": "https://rebekahcleanslanecounty.com/#business" }
             }
           }
         ],
@@ -131,7 +151,7 @@
           "email": "rebekahcleaning@gmail.com",
           "contactType": "customer service",
           "areaServed": "US-OR",
-          "availableLanguage": "English"
+          "availableLanguage": ["English"]
         }
       },
       {
@@ -157,6 +177,18 @@
         },
         "description": "Trusted cleaning in Lane County for 25+ years. Medical offices, businesses, churches, homes, and window cleaning.",
         "inLanguage": "en-US"
+      },
+      {
+        "@type": "BreadcrumbList",
+        "@id": "https://rebekahcleanslanecounty.com/#breadcrumb",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Home",
+            "item": "https://rebekahcleanslanecounty.com/"
+          }
+        ]
       }
     ]
   }

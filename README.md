@@ -71,6 +71,17 @@ python3 -m http.server 8080
 
 Alternatives later: n8n webhook → email, or Formspree.
 
+## Google / local search (Lane County)
+
+The site is SEO-ready (sitemap, robots, `HouseCleaner` schema). To **show in Maps / local pack** you still need free Google accounts set up:
+
+→ Full steps: **[docs/GOOGLE-LOCAL.md](docs/GOOGLE-LOCAL.md)**
+
+1. **Google Business Profile** — https://business.google.com/ (service area: Lane County; phone `541-726-1180`; website this domain)
+2. **Search Console** — https://search.google.com/search-console → verify → submit `sitemap.xml` → request indexing
+
+Paste a Search Console meta tag or HTML verification file here and it can be committed for you.
+
 ## Edit content
 
 | What | Where |
@@ -79,6 +90,7 @@ Alternatives later: n8n webhook → email, or Formspree.
 | Colors / layout | `css/styles.css` |
 | Images | `images/` |
 | SEO sitemap | `sitemap.xml` |
+| Google setup guide | `docs/GOOGLE-LOCAL.md` |
 
 ## Brand notes
 
