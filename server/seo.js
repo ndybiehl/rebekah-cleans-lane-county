@@ -45,20 +45,36 @@ async function fetchText(url, opts = {}) {
   }
 }
 
+function decodeEntities(s) {
+  if (!s) return s;
+  return s
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&apos;/g, "'")
+    .replace(/&#x27;/gi, "'")
+    .replace(/&#(\d+);/g, (_, n) => String.fromCharCode(Number(n)));
+}
+
 function extractMeta(html) {
-  const title = html.match(/<title[^>]*>([^<]*)<\/title>/i)?.[1]?.trim() || null;
-  const description =
+  const title = decodeEntities(
+    html.match(/<title[^>]*>([^<]*)<\/title>/i)?.[1]?.trim() || null,
+  );
+  const description = decodeEntities(
     html
       .match(
         /<meta[^>]+name=["']description["'][^>]+content=["']([^"']*)["']/i,
       )?.[1]
       ?.trim() ||
-    html
-      .match(
-        /<meta[^>]+content=["']([^"']*)["'][^>]+name=["']description["']/i,
-      )?.[1]
-      ?.trim() ||
-    null;
+      html
+        .match(
+          /<meta[^>]+content=["']([^"']*)["'][^>]+name=["']description["']/i,
+        )?.[1]
+        ?.trim() ||
+      null,
+  );
   const canonical =
     html.match(
       /<link[^>]+rel=["']canonical["'][^>]+href=["']([^"']*)["']/i,
