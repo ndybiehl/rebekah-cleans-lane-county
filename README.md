@@ -1,103 +1,76 @@
 # Rebekah’s Cleaning Service
 
-Static marketing site for **[rebekahcleanslanecounty.com](https://rebekahcleanslanecounty.com)** — commercial & residential cleaning in Lane County, Oregon.
+Public marketing site + owner **SEO admin** for **[rebekahcleanslanecounty.com](https://rebekahcleanslanecounty.com)**.
 
 | | |
 |---|---|
-| **Business** | Rebekah’s Cleaning Service |
+| **Business** | Rebekah's Cleaning Service |
 | **Phone** | [541-726-1180](tel:+15417261180) |
 | **Email** | [rebekahcleaning@gmail.com](mailto:rebekahcleaning@gmail.com) |
-| **Stack** | Static HTML / CSS (no build step) |
-| **Hosting** | DigitalOcean App Platform (static site) or any static host |
+| **Google Maps** | https://maps.app.goo.gl/KtoGTbdjrLLAUEL88 |
+| **Yelp** | https://www.yelp.com/biz/rebekah-s-cleaning-service-springfield |
+| **Stack** | Node (Express) + static HTML/CSS |
+| **Admin** | `/admin` — SEO health for `rebekahcleaning@gmail.com` |
+| **Hosting** | DigitalOcean App Platform (Node service) |
 
-## What’s included
-
-- Single-page site: hero, services, about, gallery, service area, contact
-- Brand assets from the previous Canva site (hibiscus logo mark, photos)
-- Strong local SEO: meta tags, Open Graph, `LocalBusiness` JSON-LD, sitemap, robots
-- Mobile-first, fast (system fonts, WebP images, no frameworks)
-- Contact form via [FormSubmit](https://formsubmit.co) → `rebekahcleaning@gmail.com` (plus phone / mailto)
-
-## Local preview
+## Local development
 
 ```bash
 cd rebekah-cleans-lane-county
-python3 -m http.server 8080
-# open http://localhost:8080
+npm install
+cp .env.example .env
+# Optional: set ADMIN_PASSWORD in .env for local login
+npm run dev
+# Public site:  http://localhost:3000/
+# SEO admin:    http://localhost:3000/admin
 ```
 
-## Deploy to DigitalOcean App Platform
-
-1. Push this repo to GitHub (already intended as `ndybiehl/rebekah-cleans-lane-county`).
-2. In DO: **Apps → Create App → GitHub** → select the repo → **Static Site**.
-3. Settings:
-   - **Source directory:** `/`
-   - **Output directory:** leave blank (or `/`)
-   - **Index document:** `index.html`
-4. Or use the spec: `.do/app.yaml` (update the `github.repo` field if the repo name differs).
-5. After deploy, point **rebekahcleanslanecounty.com** DNS at the DO app (CNAME to the `*.ondigitalocean.app` hostname, or use DO’s domain UI).
-
-### DNS tip
-
-If the domain currently points at Canva via Cloudflare (or similar), switch the apex/www records to DigitalOcean once the app is live. Keep HTTPS on DO or Cloudflare.
-
-## Contact form (FormSubmit → Gmail)
-
-The quote form uses **AJAX** to:
-
-```
-https://formsubmit.co/ajax/rebekahcleaning@gmail.com
-```
-
-Submissions are emailed to **rebekahcleaning@gmail.com** (subject: `Website quote request — Rebekahcleanslanecounty.com`). Reply-To is set to the visitor’s email.
-
-### One-time activation (required)
-
-FormSubmit will **not** forward real leads until the inbox owner activates:
-
-1. Open **rebekahcleaning@gmail.com** (check Spam/Promotions too).
-2. Find the email from **FormSubmit** titled something like “Activate Form”.
-3. Click **Activate Form**.
-4. Submit a test quote on the live site — it should appear in Gmail within a minute.
-
-Until activation, the site shows a clear on-page message instead of a silent failure.
-
-### Test from the browser
+Default first-boot password (only if no hash/env password): `ChangeMe-Rebekah2026!`  
+**Set a real password before sharing with Rebekah.**
 
 ```bash
-python3 -m http.server 8080
-# open http://localhost:8080/#contact → fill form → Send
+npm run hash-password -- 'her-secure-password'
+# put the hash in ADMIN_PASSWORD_HASH (DO app env secret)
 ```
 
-Alternatives later: n8n webhook → email, or Formspree.
+## Admin SEO dashboard
 
-## Google / local search (Lane County)
+Like KeyMSP ops website SEO (lighter):
 
-**Existing listings (do not recreate):**
+- Live checks: homepage, robots.txt, sitemap, CSS
+- Homepage title / description / canonical / JSON-LD / OG
+- Health score
+- Deep links: Google Business Profile, Search Console, Yelp, Gmail (form leads)
 
-| | |
-|--|--|
-| Google Maps / Business | https://maps.app.goo.gl/KtoGTbdjrLLAUEL88 |
-| Yelp (Springfield) | https://www.yelp.com/biz/rebekah-s-cleaning-service-springfield |
+Sign-in: **rebekahcleaning@gmail.com** + password from env.
 
-Name: **Rebekah's Cleaning Service** · Phone: **(541) 726-1180** · Website already on Google.
+## Deploy (DigitalOcean)
 
-→ Manage + Search Console steps: **[docs/GOOGLE-LOCAL.md](docs/GOOGLE-LOCAL.md)**
+1. App type: **Web Service** (Node), not static-only.
+2. Build: `npm install` (default)
+3. Run: `npm start`
+4. HTTP port: `3000`
+5. Health check: `/healthz`
+6. Secrets in DO:
+   - `SESSION_SECRET` — long random string  
+   - `ADMIN_PASSWORD_HASH` — from `npm run hash-password`  
+   - `ADMIN_EMAIL=rebekahcleaning@gmail.com`  
+   - `PUBLIC_SITE_URL=https://rebekahcleanslanecounty.com`  
+   - `NODE_ENV=production`
 
-Paste a Search Console verification meta/file here if you want it added to the site.
+Spec: `.do/app.yaml` (update if the DO app was created as static earlier — convert to service).
 
-## Edit content
+## Project layout
 
-| What | Where |
-|------|--------|
-| Phone / email / copy | `index.html` |
-| Colors / layout | `css/styles.css` |
-| Images | `images/` |
-| SEO sitemap | `sitemap.xml` |
-| Google setup guide | `docs/GOOGLE-LOCAL.md` |
+```
+public/          # Marketing site (HTML, CSS, images, map)
+server/          # Express: static + /admin + SEO API
+```
 
-## Brand notes
+## Contact form
 
-- **Tagline:** Built on Trust, Kept Spotless  
-- **Colors:** Burgundy `#6b1d2a`, navy `#1e3a5f`, hibiscus red `#c41e3a`  
-- **Emblem:** Red hibiscus flowers (from original Canva site)
+FormSubmit → `rebekahcleaning@gmail.com` (AJAX). See earlier activation notes.
+
+## Google / local
+
+Manage existing GBP + Yelp — see `public/docs/GOOGLE-LOCAL.md`.

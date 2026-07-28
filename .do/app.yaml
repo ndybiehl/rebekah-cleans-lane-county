@@ -1,15 +1,28 @@
-# DigitalOcean App Platform — static site
-# Create app from this repo, or: doctl apps create --spec .do/app.yaml
+# DigitalOcean App Platform — Node web service (static + /admin SEO)
+# doctl apps create --spec .do/app.yaml
 name: rebekah-cleans-lane-county
-static_sites:
+region: nyc
+services:
   - name: web
     github:
       repo: ndybiehl/rebekah-cleans-lane-county
       branch: main
       deploy_on_push: true
     source_dir: /
-    output_dir: /
-    index_document: index.html
-    error_document: index.html
+    environment_slug: node-js
+    instance_count: 1
+    instance_size_slug: basic-xxs
+    http_port: 3000
     routes:
       - path: /
+    envs:
+      - key: NODE_ENV
+        value: production
+      - key: PUBLIC_SITE_URL
+        value: https://rebekahcleanslanecounty.com
+      # Set these as SECRET in the DO dashboard (do not commit real values):
+      # SESSION_SECRET, ADMIN_PASSWORD_HASH
+      - key: ADMIN_EMAIL
+        value: rebekahcleaning@gmail.com
+    health_check:
+      http_path: /healthz
