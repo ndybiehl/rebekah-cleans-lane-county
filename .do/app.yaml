@@ -24,5 +24,13 @@ services:
       # SESSION_SECRET, ADMIN_PASSWORD_HASH
       - key: ADMIN_EMAIL
         value: rebekahcleaning@gmail.com
+      - key: GA4_MEASUREMENT_ID
+        value: G-Z7SYCSYNN9
+      - key: GA4_PROPERTY_ID
+        value: "547446420"
+      - key: GA4_ACCOUNT_ID
+        value: "402544998"
+      - key: GA4_STREAM_ID
+        value: "15341565315"
     health_check:
       http_path: /healthz

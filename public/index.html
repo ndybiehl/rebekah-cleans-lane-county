@@ -39,6 +39,15 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
   <link rel="stylesheet" href="css/styles.css">
 
+  <!-- Google Analytics (GA4) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-Z7SYCSYNN9"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-Z7SYCSYNN9', { anonymize_ip: true });
+  </script>
+
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -889,6 +898,13 @@
               if (success) {
                 setStatus('Thank you — your message was sent to Rebekah. We’ll be in touch soon.', 'ok');
                 form.reset();
+                if (typeof gtag === 'function') {
+                  gtag('event', 'generate_lead', {
+                    event_category: 'contact',
+                    event_label: service || 'quote_request',
+                    method: 'formsubmit'
+                  });
+                }
                 return;
               }
 

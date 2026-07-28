@@ -7,6 +7,13 @@ const SITE =
   process.env.PUBLIC_SITE_URL?.replace(/\/$/, "") ||
   "https://rebekahcleanslanecounty.com";
 
+/** GA4 — created under rebekahcleaning@gmail.com (2026-07-28) */
+const GA4_MEASUREMENT_ID =
+  process.env.GA4_MEASUREMENT_ID?.trim() || "G-Z7SYCSYNN9";
+const GA4_PROPERTY_ID = process.env.GA4_PROPERTY_ID?.trim() || "547446420";
+const GA4_ACCOUNT_ID = process.env.GA4_ACCOUNT_ID?.trim() || "402544998";
+const GA4_STREAM_ID = process.env.GA4_STREAM_ID?.trim() || "15341565315";
+
 const KEY_PATHS = ["/", "/robots.txt", "/sitemap.xml", "/css/styles.css"];
 
 async function fetchText(url, opts = {}) {
@@ -61,7 +68,20 @@ function extractMeta(html) {
   const hasJsonLd = /application\/ld\+json/i.test(html);
   const hasOg = /property=["']og:title["']/i.test(html);
   const hasFormsubmit = /formsubmit\.co/i.test(html);
-  return { title, description, canonical, hasJsonLd, hasOg, hasFormsubmit };
+  const ga4Match = html.match(/G-[A-Z0-9]{6,}/);
+  const hasGa4 =
+    /googletagmanager\.com\/gtag\/js/i.test(html) ||
+    /gtag\s*\(\s*['"]config['"]/i.test(html);
+  return {
+    title,
+    description,
+    canonical,
+    hasJsonLd,
+    hasOg,
+    hasFormsubmit,
+    hasGa4,
+    ga4MeasurementId: ga4Match ? ga4Match[0] : null,
+  };
 }
 
 function parseSitemapUrls(xml) {
@@ -118,6 +138,21 @@ async function buildSeoSnapshot() {
     },
   ];
 
+  const ga4OnPage =
+    homepage?.hasGa4 &&
+    (!homepage.ga4MeasurementId ||
+      homepage.ga4MeasurementId === GA4_MEASUREMENT_ID);
+
+  checks.push({
+    name: "GA4 tag",
+    path: "/",
+    ok: Boolean(ga4OnPage),
+    status: home.status,
+    detail: homepage?.hasGa4
+      ? `Found ${homepage.ga4MeasurementId || "gtag"} on homepage`
+      : `Missing gtag — expect ${GA4_MEASUREMENT_ID}`,
+  });
+
   const scoreParts = [
     home.ok,
     robots.ok && Boolean(robotsSitemap),
@@ -128,10 +163,16 @@ async function buildSeoSnapshot() {
     Boolean(homepage?.canonical),
     Boolean(homepage?.hasJsonLd),
     Boolean(homepage?.hasOg),
+    Boolean(ga4OnPage),
   ];
   const score = Math.round(
     (scoreParts.filter(Boolean).length / scoreParts.length) * 100,
   );
+
+  const ga4Home = `https://analytics.google.com/analytics/web/#/p${GA4_PROPERTY_ID}/reports/intelligenthome`;
+  const ga4Realtime = `https://analytics.google.com/analytics/web/#/p${GA4_PROPERTY_ID}/realtime/overview`;
+  const ga4Reports = `https://analytics.google.com/analytics/web/#/p${GA4_PROPERTY_ID}/reports/reportinghub`;
+  const ga4Admin = `https://analytics.google.com/analytics/web/#/a${GA4_ACCOUNT_ID}p${GA4_PROPERTY_ID}/admin`;
 
   return {
     ok: true,
@@ -139,6 +180,15 @@ async function buildSeoSnapshot() {
     generatedAt,
     score,
     homepage,
+    ga4: {
+      measurementId: GA4_MEASUREMENT_ID,
+      propertyId: GA4_PROPERTY_ID,
+      accountId: GA4_ACCOUNT_ID,
+      streamId: GA4_STREAM_ID,
+      onPage: Boolean(homepage?.hasGa4),
+      onPageId: homepage?.ga4MeasurementId || null,
+      matchesConfig: ga4OnPage,
+    },
     checks: checks.map((c) => ({
       name: c.name,
       path: c.path,
@@ -166,15 +216,26 @@ async function buildSeoSnapshot() {
       searchConsoleDomain: "https://search.google.com/search-console",
       businessProfile: "https://business.google.com/",
       gmail: "https://mail.google.com/",
+      ga4: ga4Home,
+      ga4Realtime,
+      ga4Reports,
+      ga4Admin,
     },
     tips: [
+      "Open GA4 Realtime, then load the live site in another tab — you should see 1+ active users within a minute of deploy.",
+      "Quote form submissions fire a generate_lead event in GA4 when the form succeeds.",
       "Keep Google Business Profile hours, categories, and photos up to date.",
       "Ask happy commercial clients for Google reviews — biggest local ranking lever.",
       "After major site edits, open Search Console → URL inspection → Request indexing.",
       "Quote form emails land in rebekahcleaning@gmail.com via FormSubmit.",
-      "Service-area business: no public street address (correct for home office).",
     ],
   };
 }
 
-module.exports = { buildSeoSnapshot, SITE };
+module.exports = {
+  buildSeoSnapshot,
+  SITE,
+  GA4_MEASUREMENT_ID,
+  GA4_PROPERTY_ID,
+  GA4_ACCOUNT_ID,
+};

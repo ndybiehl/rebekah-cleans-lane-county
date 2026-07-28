@@ -33,16 +33,29 @@ npm run hash-password -- 'her-secure-password'
 # put the hash in ADMIN_PASSWORD_HASH (DO app env secret)
 ```
 
+## Google Analytics 4
+
+| | |
+|--|--|
+| **Measurement ID** | `G-Z7SYCSYNN9` |
+| **Property ID** | `547446420` |
+| **Account** | rebekahcleaning@gmail.com |
+| **Stream** | Web · rebekahcleanslanecounty.com |
+
+Tag is in `public/index.html` (gtag). Quote form success fires `generate_lead`.
+
 ## Admin SEO dashboard
 
 Like KeyMSP ops website SEO (lighter):
 
-- Live checks: homepage, robots.txt, sitemap, CSS
-- Homepage title / description / canonical / JSON-LD / OG
+- Live checks: homepage, robots.txt, sitemap, CSS, **GA4 tag**
+- Homepage title / description / canonical / JSON-LD / OG / GA4 ID
 - Health score
-- Deep links: Google Business Profile, Search Console, Yelp, Gmail (form leads)
+- Deep links: **GA4 Realtime / Reports**, Google Business Profile, Search Console, Yelp, Gmail
 
 Sign-in: **rebekahcleaning@gmail.com** + password from env.
+
+Realtime verify after deploy: open [GA4 Realtime](https://analytics.google.com/analytics/web/#/p547446420/realtime/overview) while browsing the live site.
 
 ## Deploy (DigitalOcean)
 

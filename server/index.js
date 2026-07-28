@@ -326,8 +326,28 @@ function adminShell() {
               <p class="muted">
                 JSON-LD: \${hp.hasJsonLd ? 'yes' : 'no'} ·
                 Open Graph: \${hp.hasOg ? 'yes' : 'no'} ·
-                Contact form: \${hp.hasFormsubmit ? 'FormSubmit' : '—'}
+                Contact form: \${hp.hasFormsubmit ? 'FormSubmit' : '—'} ·
+                GA4: \${hp.hasGa4 ? esc(hp.ga4MeasurementId || 'yes') : 'missing'}
               </p>
+            </div>
+
+            <div class="card">
+              <h2>Google Analytics 4</h2>
+              <p><strong>Measurement ID</strong><br><code>\${esc((seo.ga4 && seo.ga4.measurementId) || '—')}</code></p>
+              <p><strong>Property</strong><br><code>\${esc((seo.ga4 && seo.ga4.propertyId) || '—')}</code>
+                · stream <code>\${esc((seo.ga4 && seo.ga4.streamId) || '—')}</code></p>
+              <p>
+                <span class="badge \${seo.ga4 && seo.ga4.onPage ? 'ok' : 'bad'}">
+                  \${seo.ga4 && seo.ga4.onPage ? 'Tag on site' : 'Tag not detected'}
+                </span>
+              </p>
+              <p class="muted">Sign in as rebekahcleaning@gmail.com to open reports. Realtime may take a few minutes after deploy.</p>
+              <div class="links">
+                <a href="\${esc(links.ga4Realtime || '#')}" target="_blank" rel="noopener">Realtime</a>
+                <a href="\${esc(links.ga4 || '#')}" target="_blank" rel="noopener">GA4 home</a>
+                <a href="\${esc(links.ga4Reports || '#')}" target="_blank" rel="noopener">Reports</a>
+                <a href="\${esc(links.ga4Admin || '#')}" target="_blank" rel="noopener">Admin</a>
+              </div>
             </div>
 
             <div class="card">
@@ -339,6 +359,7 @@ function adminShell() {
             <div class="card" style="grid-column:1/-1">
               <h2>Open in Google &amp; more</h2>
               <div class="links">
+                <a href="\${esc(links.ga4Realtime || '#')}" target="_blank" rel="noopener">GA4 Realtime</a>
                 <a href="\${esc(links.businessProfile)}" target="_blank" rel="noopener">Google Business Profile</a>
                 <a href="\${esc(links.googleBusiness)}" target="_blank" rel="noopener">Maps listing</a>
                 <a href="\${esc(links.searchConsoleDomain)}" target="_blank" rel="noopener">Search Console</a>
