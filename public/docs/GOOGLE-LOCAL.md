@@ -12,7 +12,27 @@ She **already has** the two listings that matter for local search. Do **not** cr
 | **Google Business / Maps** | https://maps.app.goo.gl/KtoGTbdjrLLAUEL88 | Category: Janitorial service · website + phone already set |
 | **Yelp** | https://www.yelp.com/biz/rebekah-s-cleaning-service-springfield | Springfield listing |
 
-Place coords (Maps): approx. `44.0599, -123.0438` · knowledge graph `/g/11x86bgh13`
+Place coords (Maps short link): approx. `44.0599, -123.0438` (Springfield / Lane County) · knowledge graph `/g/11x86bgh13`
+
+### Map pin / “in the ocean” (2026-07-28)
+
+This listing is a **service-area business** (SAB): **no public storefront**, clients never visit.
+
+| Setting | Expected |
+|---------|----------|
+| **Business location** | “No location; deliveries and home services only” (address hidden) |
+| **Service areas** | Lane County + **Springfield, Eugene, Cottage Grove, Junction City, Creswell** (city-level) |
+| **Map behavior** | Google draws a **service-area map**, often very zoomed out — the Pacific can fill half the screen even when the business is correctly in Oregon |
+
+**If Maps still looks like mid-ocean:**
+
+1. Sign in as `rebekahcleaning@gmail.com` → https://business.google.com/  
+2. Profile → **Edit business information** → **Location**  
+3. Confirm **Service area** lists the Lane County **cities** above (not only a vague region, and never another state).  
+4. Optional: set a **private** street address (Springfield) with **Show business address to customers = off** if Google’s UI keeps the address after hiding — some builds clear the address when the toggle is off; then stay SAB-only + cities.  
+5. Wait for pending edits (often ~10 minutes; sometimes longer). Check in an **incognito** window.
+
+Do **not** create a second Google listing.
 
 ---
 
@@ -28,8 +48,8 @@ Place coords (Maps): approx. `44.0599, -123.0438` · knowledge graph `/g/11x86bg
    - **Phone:** (541) 726-1180  
    - **Website:** `https://rebekahcleanslanecounty.com/` (prefer **https**, not `http`)  
    - **Hours:** e.g. open, closes 5 PM (align with real schedule)  
-   - **Categories:** primary **Janitorial service** or **House cleaning service**; add secondary (window cleaning, commercial cleaning) if accurate  
-   - **Service areas:** Springfield, Eugene, Lane County, etc.  
+   - **Categories:** primary **Janitorial service**; secondary House cleaning + Window cleaning  
+   - **Service areas:** Springfield, Eugene, Lane County, Cottage Grove, Junction City, Creswell, etc.  
 5. Add her as owner and you as manager if helpful.  
 6. Photos, services, and **ask for Google reviews** from happy clients.
 

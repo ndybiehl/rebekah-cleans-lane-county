@@ -787,13 +787,23 @@
           attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
         }).addTo(map);
 
-        // Rough Lane County outline (simplified)
+        // Lane County outline hugging the Oregon coast (not offshore into the Pacific)
+        // Approx coastline + eastern Cascades boundary — simplified for the site map
         var laneCounty = [
-          [44.30, -124.15],
-          [44.32, -122.45],
-          [43.48, -122.20],
-          [43.48, -124.15],
-          [44.30, -124.15]
+          [44.30, -124.10], // NW near Florence coast
+          [44.32, -123.70],
+          [44.30, -123.20],
+          [44.28, -122.70],
+          [44.25, -122.40], // NE Cascades
+          [43.95, -122.25],
+          [43.55, -122.20],
+          [43.48, -122.45], // SE
+          [43.48, -123.00],
+          [43.55, -123.55],
+          [43.70, -124.05], // SW coast south of Florence
+          [43.90, -124.12],
+          [44.10, -124.12],
+          [44.30, -124.10]
         ];
         L.polygon(laneCounty, {
           color: '#6b1d2a',
@@ -802,8 +812,16 @@
           fillOpacity: 0.12
         }).addTo(map).bindPopup('<strong>Lane County service area</strong><br>Rebekah’s Cleaning Service');
 
+        // Springfield base pin (home base — no public storefront)
+        L.circleMarker([44.0462, -123.0220], {
+          radius: 9,
+          color: '#1e3a5f',
+          fillColor: '#1e3a5f',
+          fillOpacity: 0.95,
+          weight: 2
+        }).addTo(map).bindPopup('<strong>Springfield, OR</strong><br>Base · Rebekah’s Cleaning Service');
+
         var cities = [
-          { name: 'Springfield', lat: 44.0462, lng: -123.0220 },
           { name: 'Eugene', lat: 44.0521, lng: -123.0868 },
           { name: 'Cottage Grove', lat: 43.7976, lng: -123.0595 },
           { name: 'Junction City', lat: 44.2193, lng: -123.2057 },
@@ -819,6 +837,12 @@
             weight: 1
           }).addTo(map).bindPopup(c.name);
         });
+
+        // Fit to Springfield base + towns so the Pacific doesn’t dominate the frame
+        var bounds = L.latLngBounds(
+          [[44.0462, -123.0220]].concat(cities.map(function (c) { return [c.lat, c.lng]; }))
+        );
+        map.fitBounds(bounds.pad(0.18));
 
         // Invalidate size after layout (sticky header / flex)
         setTimeout(function () { map.invalidateSize(); }, 200);
