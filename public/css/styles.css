@@ -707,6 +707,12 @@ section {
   margin-bottom: 0.85rem;
 }
 
+.ba-note {
+  color: var(--muted);
+  margin: -0.35rem 0 0.85rem;
+  font-size: 0.98rem;
+}
+
 .ba-pair {
   display: grid;
   grid-template-columns: 1fr 1fr;
