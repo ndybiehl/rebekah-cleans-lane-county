@@ -10,7 +10,7 @@
     "hash-password": "node server/hash-password.js"
   },
   "engines": {
-    "node": ">=18"
+    "node": "22.x"
   },
   "dependencies": {
     "@google-analytics/data": "^6.1.0",
